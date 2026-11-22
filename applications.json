@@ -1,0 +1,51 @@
+
+{
+    "applications": [
+        {
+            "id": "sakha_register",
+            "name": "سامانه نیازمندان",
+            "appid": "110",
+            "crawl_mode": "manual",
+            "base_url": "http://172.16.249.114:8001/ords/r/sakha/sakha_register/",
+            "authentication": {},
+            "pages": [
+                {
+                    "id": "subscriber-main-page",
+                    "name": "صفحه اصلی متقاضی",
+                    "url": "subscriber-main-page"
+                },
+                {
+                    "id": "address",
+                    "name": "اطلاعات آدرس",
+                    "url": "address"
+                },
+                {
+                    "id": "family",
+                    "name": "اطلاعات خانواده",
+                    "url": "family"
+                },
+                {
+                    "id": "personal-note",
+                    "name": "یادداشت شخصی",
+                    "url": "personal-note"
+                },
+                {
+                    "id": "subscribers-documents",
+                    "name": "مدارک متقاضی",
+                    "url": "subscribers-documents"
+                },
+                {
+                    "id": "charity-selection",
+                    "name": "انتخاب خیریه",
+                    "url": "charity-selection"
+                },
+                {
+                    "id": "test-disabled-page",
+                    "name": "صفحه غیرفعال",
+                    "url": "test-disabled-page",
+                    "enabled": false
+                }
+            ]
+        }
+    ]
+}

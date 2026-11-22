@@ -1,0 +1,28 @@
+{
+    "total_applications": 1,
+    "total_configured_pages": 7,
+    "total_attempted_urls": 6,
+    "total_visited_pages": 6,
+    "total_unavailable_pages": 0,
+    "total_error_pages": 0,
+    "total_skipped_configured_pages": 1,
+    "total_observed_internal_links": 62,
+    "total_errors": 0,
+    "applications": [
+        {
+            "application": "sakha_register",
+            "application_name": "سامانه نیازمندان",
+            "crawl_mode": "manual",
+            "crawl_strategy": "configured_pages_only",
+            "total_configured_pages": 7,
+            "total_enabled_pages": 6,
+            "total_attempted_urls": 6,
+            "total_visited_pages": 6,
+            "total_unavailable_pages": 0,
+            "total_error_pages": 0,
+            "total_skipped_configured_pages": 1,
+            "termination_reason": "configured_pages_completed",
+            "total_errors": 0
+        }
+    ]
+}

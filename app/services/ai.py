@@ -1,5 +1,7 @@
 
 import os
+import logging
+import time
 
 from urllib.parse import urlparse
 
@@ -11,6 +13,8 @@ from dotenv import load_dotenv
 # Load Environment Variables
 # =================================
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 def get_required_env(name):
@@ -41,7 +45,10 @@ class AIService:
         )
 
         self.timeout = int(
-            get_required_env("AVALAI_TIMEOUT")
+            os.getenv("AVALAI_TIMEOUT", "180").strip()
+        )
+        self.max_retries = int(
+            os.getenv("AVALAI_MAX_RETRIES", "1").strip()
         )
 
         self.system_prompt = get_required_env(
@@ -69,12 +76,18 @@ class AIService:
                 "AVALAI_TIMEOUT must be greater than zero"
             )
 
-        # Initialize OpenAI-compatible client
+        if self.max_retries < 0 or self.max_retries > 5:
+            raise ValueError(
+                "AVALAI_MAX_RETRIES must be between 0 and 5"
+            )
+
+        # Initialize OpenAI-compatible client. Keep retries limited because
+        # a timeout on a large prompt should not trigger several long waits.
         self.client = OpenAI(
             api_key=self.api_key,
             base_url=self.base_url,
             timeout=self.timeout,
-            max_retries=2
+            max_retries=self.max_retries
         )
 
     # =================================
@@ -85,19 +98,49 @@ class AIService:
         if not isinstance(prompt, str) or not prompt.strip():
             raise ValueError("AI prompt cannot be empty")
 
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": self.system_prompt
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=self.temperature
+        started_at = time.monotonic()
+        prompt_chars = len(prompt)
+
+        logger.info(
+            "AvalAI request started: model=%s prompt_chars=%s timeout=%ss retries=%s",
+            self.model,
+            prompt_chars,
+            self.timeout,
+            self.max_retries
+        )
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": self.system_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                temperature=self.temperature
+            )
+        except Exception as error:
+            elapsed = round(time.monotonic() - started_at, 2)
+            logger.exception(
+                "AvalAI request failed: model=%s prompt_chars=%s elapsed_seconds=%s error_type=%s",
+                self.model,
+                prompt_chars,
+                elapsed,
+                type(error).__name__
+            )
+            raise
+
+        elapsed = round(time.monotonic() - started_at, 2)
+        logger.info(
+            "AvalAI request completed: model=%s prompt_chars=%s elapsed_seconds=%s",
+            self.model,
+            prompt_chars,
+            elapsed
         )
 
         if not response.choices:

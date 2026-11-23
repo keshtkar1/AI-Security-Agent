@@ -365,6 +365,16 @@ class ZAPService:
         sensitive_params = {
             "session",
             "sessionid",
+            "p_context",
+            "cs",
+            "dialogcs",
+            "csrf",
+            "csrf_token",
+            "p_checksum",
+            "checksum",
+            "ck",
+            "p_session",
+            "apex_session",
             "sid",
             "token",
             "access_token",
@@ -384,10 +394,16 @@ class ZAPService:
 
             query.append((key, value))
 
+        sanitized_path = re.sub(
+            r"(?i)(/ords/r/[^/?#]+/[^/?#]+/[^/?#]+/)\d{6,}(?=/|$)",
+            r"\1[MASKED]",
+            parsed.path
+        )
+
         return urlunsplit((
             parsed.scheme,
             parsed.netloc,
-            parsed.path,
+            sanitized_path,
             urlencode(query),
             ""
         ))

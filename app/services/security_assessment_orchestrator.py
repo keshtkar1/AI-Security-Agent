@@ -573,6 +573,41 @@ class SecurityAssessmentOrchestrator:
         assessment["coverage_missing_applications"] = missing_applications
         assessment["coverage_errors"] = coverage_errors
 
+    def register_crawl_results(
+        self,
+        assessment_id,
+        crawl_results,
+        crawl_summary=None,
+        crawl_errors=None
+    ):
+        """Persist externally executed Playwright results and build coverage."""
+        assessment = self.get_assessment(assessment_id)
+        applications = assessment.get("applications", [])
+        if not isinstance(crawl_results, dict):
+            raise ValueError("Crawl results must be an object")
+
+        valid_results = {}
+        errors = list(crawl_errors) if isinstance(crawl_errors, list) else []
+        for application in applications:
+            result = crawl_results.get(application)
+            if isinstance(result, dict) and result.get("application") == application:
+                valid_results[application] = result
+
+        assessment["crawl_results"] = valid_results
+        assessment["crawl_summary"] = (
+            crawl_summary if isinstance(crawl_summary, dict) else {}
+        )
+        assessment["crawl_errors"] = errors
+        self._build_assessment_coverage(assessment, applications, valid_results)
+        assessment["status"] = (
+            "crawl_completed"
+            if len(valid_results) == len(applications) and not errors
+            else "crawl_completed_with_errors"
+        )
+        assessment["updated_at"] = self._now()
+        self._save_assessments()
+        return assessment
+
     # =================================
     # Wait For Passive Scan
     # =================================

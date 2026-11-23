@@ -42,6 +42,14 @@ class SecurityReportService:
             "session",
             "sessionid",
             "session_id",
+            "p_context",
+            "cs",
+            "dialogcs",
+            "csrf",
+            "csrf_token",
+            "p_checksum",
+            "checksum",
+            "ck",
             "sid",
             "jsessionid",
             "phpsessid",
@@ -194,8 +202,8 @@ class SecurityReportService:
         # containing session/token/password/secret/credential/cookie markers.
         sensitive_key = (
             r"[A-Za-z0-9_.-]*"
-            r"(?:session|token|password|passwd|secret|credential|"
-            r"api[_-]?key|cookie|authorization|auth)"
+            r"(?:session|context|token|password|passwd|secret|credential|"
+            r"api[_-]?key|cookie|authorization|auth|csrf|dialogcs|cs)"
             r"[A-Za-z0-9_.-]*"
         )
         pattern = re.compile(
@@ -267,10 +275,16 @@ class SecurityReportService:
             else:
                 netloc = self._sanitize_text(netloc)
 
+            sanitized_path = re.sub(
+                r"(?i)(/ords/r/[^/?#]+/[^/?#]+/[^/?#]+/)\d{6,}(?=/|$)",
+                r"\1[MASKED]",
+                parsed.path
+            )
+
             return urlunsplit((
                 parsed.scheme,
                 netloc,
-                self._sanitize_text(parsed.path),
+                self._sanitize_text(sanitized_path),
                 urlencode(sanitized_query),
                 self._sanitize_text(parsed.fragment)
             ))
@@ -336,7 +350,12 @@ class SecurityReportService:
 
         try:
             parsed = urlsplit(url)
-            return parsed.path or "/"
+            path = re.sub(
+                r"(?i)(/ords/r/[^/?#]+/[^/?#]+/[^/?#]+/)\d{6,}(?=/|$)",
+                r"\1[MASKED]",
+                parsed.path
+            )
+            return self._sanitize_text(path) or "/"
         except Exception:
             return "نامشخص"
 
@@ -1234,6 +1253,21 @@ class SecurityReportService:
                     <p>
                         <strong>ارزیابی اطمینان:</strong>
                         {self._html(item.get("confidence_assessment"))}
+                    </p>
+
+                    <p>
+                        <strong>ارتباط با ساختار واقعی برنامه:</strong>
+                        {self._html(item.get("application_context"))}
+                    </p>
+
+                    <p>
+                        <strong>مبنای شواهد:</strong>
+                        {self._html(item.get("evidence_basis"))}
+                    </p>
+
+                    <p>
+                        <strong>اطلاعات ناموجود یا نیازمند بررسی:</strong>
+                        {self._html(item.get("unknowns"))}
                     </p>
 
                     <p>

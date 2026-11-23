@@ -1,8 +1,0 @@
-
-fastapi
-uvicorn
-requests
-python-owasp-zap-v2.4
-openai
-python-dotenv
-playwright
